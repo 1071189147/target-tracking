@@ -14,4 +14,6 @@ The weight file should be placed in the main directory.
 
 For testing, simply run the following code in the console.
 
+cd main
+
 python test_track.py
