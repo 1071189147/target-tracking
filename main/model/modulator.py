@@ -5,64 +5,6 @@ import torch.nn.functional as F
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-class DCA(nn.Module):
-
-    def __init__(self, in_channels, reduction = 2, cda=False):
-        super().__init__()
-
-        self.cda = cda
-
-        self.avgpool = nn.AdaptiveAvgPool2d(1)
-        self.maxpool = nn.AdaptiveMaxPool2d(1)
-        self.weighting = nn.Sequential(
-            nn.Conv2d(in_channels=in_channels,
-                      out_channels=in_channels // reduction,
-                      kernel_size=1,
-                      padding=0,
-                      stride=1, ),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=in_channels // reduction,
-                      out_channels=in_channels,
-                      kernel_size=1,
-                      padding=0,
-                      stride=1, )
-        )
-        self.sigmoid = nn.Sigmoid()
-
-    def forward(self, x):
-        w1 = self.avgpool(x)
-        w2 = self.maxpool(x)
-
-        w1 = self.weighting(w1)
-        w2 = self.weighting(w2)
-
-        w = self.sigmoid(w1 + w2)
-
-        return x * w.expand_as(x)
-def feature_visualization(x, n=256,name='h'):
-    """
-    x:              Features to be visualized
-    module_type:    Module type
-    stage:          Module stage within model
-    n:              Maximum number of feature maps to plot
-    save_dir:       Directory to save results
-    """
-    batch, channels, height, width = x.shape  # batch, channels, height, width
-    if height > 1 and width > 1:
-        f = '/data2/wcx/fpndual/{}.png'.format(name)  # filename
-
-        blocks = torch.chunk(x[0].cpu(), channels, dim=0)  # select batch index 0, block by channels
-        n = min(n, channels)  # number of plots
-        fig, ax = plt.subplots(math.ceil(n / 8), 8, tight_layout=True)  # 8 rows x n/8 cols
-        ax = ax.ravel()
-        plt.subplots_adjust(wspace=0.05, hspace=0.05)
-        for i in range(n):
-            ax[i].imshow(blocks[i].squeeze())  # cmap='gray'
-            ax[i].axis('off')
-        plt.title('Features')
-        plt.savefig(f, dpi=300, bbox_inches='tight')
-        plt.close()
-        np.save(str(f.with_suffix('.npy')), x[0].cpu().numpy())  # npy save
 class Conv_Inter(nn.Module):
     def __init__(self, d_model=256):
         super().__init__()
@@ -83,7 +25,6 @@ class Modulator(nn.Module):
             beta = nn.Parameter(1.0 * torch.ones((256 , 1, 1)), requires_grad=True)
             setattr(self, "beta_%d" % i, beta)
         self.xiuzheng = Conv_Inter()
-        # self.attention = nn.ModuleList([DCA(256),DCA(256),DCA(256)])
 
     def compute_corr_losses(self, pred_lbs, gt_lbs):
         eps = 1e-5
@@ -145,7 +86,7 @@ class Modulator(nn.Module):
                 feats_x[i] = feats_x[i] + t
                 # feats_x[i] = getattr(self, "pam_%d" % i)(feats_x[i])
             return feats_x, 1
-            #
+            
 
 
 
