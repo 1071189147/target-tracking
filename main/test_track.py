@@ -113,7 +113,7 @@ def evaluate_coco(generator, model, l):
 
         bbox = boxes[0].tolist()
         bbox = bbox[0]
-        path = os.path.join('/data1/wcx/githubdata/',str(index)+'.bmp')
+        path = os.path.join('./data',str(index)+'.bmp')
         img = cv2.imread(path)
         cv2.rectangle(img, (round(bbox[0]), round(bbox[1])), (round(bbox[0])+round(bbox[2]), round(bbox[1])+round(bbox[3])),
                       (0, 0, 255), 1)
